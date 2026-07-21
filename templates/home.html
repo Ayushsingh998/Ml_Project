@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Exam Performance Indicator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-deep: #150e2e;
+        --bg-violet: #3a1e68;
+        --accent-coral: #ff8552;
+        --accent-mint: #4ce0b3;
+        --surface: rgba(255, 255, 255, 0.06);
+        --surface-border: rgba(255, 255, 255, 0.12);
+        --text-light: #f5f0ff;
+        --text-muted: #b4a9d1;
+        --field-focus: #8b7cf6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", sans-serif;
+        color: var(--text-light);
+        background:
+          radial-gradient(
+            circle at 15% 20%,
+            rgba(255, 133, 82, 0.18),
+            transparent 45%
+          ),
+          radial-gradient(
+            circle at 85% 75%,
+            rgba(76, 224, 179, 0.16),
+            transparent 45%
+          ),
+          linear-gradient(160deg, var(--bg-deep) 0%, var(--bg-violet) 100%);
+        background-attachment: fixed;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 48px 20px 80px;
+        overflow-x: hidden;
+      }
+
+      /* floating ambient blobs */
+      .blob {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.35;
+        z-index: 0;
+        pointer-events: none;
+        animation: drift 18s ease-in-out infinite;
+      }
+      .blob.b1 {
+        width: 320px;
+        height: 320px;
+        background: var(--accent-coral);
+        top: -80px;
+        left: -100px;
+        animation-delay: 0s;
+      }
+      .blob.b2 {
+        width: 260px;
+        height: 260px;
+        background: var(--field-focus);
+        bottom: -60px;
+        right: -80px;
+        animation-delay: 4s;
+      }
+      .blob.b3 {
+        width: 200px;
+        height: 200px;
+        background: var(--accent-mint);
+        top: 40%;
+        right: 10%;
+        animation-delay: 8s;
+      }
+
+      @keyframes drift {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(20px, -30px) scale(1.08);
+        }
+      }
+
+      .wrap {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 960px;
+      }
+
+      .masthead {
+        text-align: center;
+        margin-bottom: 36px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent-mint);
+        background: rgba(76, 224, 179, 0.1);
+        border: 1px solid rgba(76, 224, 179, 0.35);
+        padding: 6px 14px;
+        border-radius: 999px;
+        margin-bottom: 18px;
+      }
+
+      .eyebrow .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent-mint);
+        box-shadow: 0 0 8px var(--accent-mint);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      h1.title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: clamp(28px, 4.5vw, 44px);
+        font-weight: 700;
+        margin: 0 0 10px;
+        line-height: 1.1;
+        background: linear-gradient(
+          90deg,
+          #fff,
+          var(--accent-mint) 60%,
+          var(--accent-coral)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .subtitle {
+        color: var(--text-muted);
+        font-size: 15px;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--surface-border);
+        border-radius: 24px;
+        backdrop-filter: blur(18px);
+        padding: 36px;
+        box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
+      }
+
+      /* progress meter */
+      .progress-track {
+        height: 8px;
+        width: 100%;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          var(--accent-coral),
+          var(--field-focus),
+          var(--accent-mint)
+        );
+        transition: width 0.5s cubic-bezier(0.4, 1.4, 0.4, 1);
+      }
+      .progress-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 28px;
+      }
+      #progress-count {
+        color: var(--accent-mint);
+        font-weight: 600;
+      }
+
+      form {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px 24px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+      }
+
+      .field.full {
+        grid-column: 1 / -1;
+      }
+
+      label.form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      label.form-label .icon {
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 12px;
+      }
+
+      .form-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--surface-border);
+        color: var(--text-light);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 14px;
+        font-family: "Inter", sans-serif;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s,
+          background 0.2s;
+        appearance: none;
+      }
+
+      select.form-control {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23B4A9D1' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        padding-right: 36px;
+      }
+
+      .form-control:hover {
+        border-color: rgba(255, 255, 255, 0.25);
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: var(--field-focus);
+        background: rgba(139, 124, 246, 0.1);
+        box-shadow: 0 0 0 4px rgba(139, 124, 246, 0.18);
+      }
+
+      .form-control option {
+        background: #241650;
+        color: var(--text-light);
+      }
+
+      .field.filled label.form-label {
+        color: var(--accent-mint);
+      }
+      .field.filled .icon {
+        background: rgba(76, 224, 179, 0.18);
+      }
+
+      .submit-row {
+        grid-column: 1 / -1;
+        margin-top: 10px;
+      }
+
+      button.submit-btn {
+        width: 100%;
+        border: none;
+        cursor: pointer;
+        padding: 16px;
+        border-radius: 14px;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        font-size: 15px;
+        color: #150e2e;
+        background: linear-gradient(
+          90deg,
+          var(--accent-mint),
+          var(--field-focus) 60%,
+          var(--accent-coral)
+        );
+        background-size: 200% auto;
+        transition:
+          background-position 0.5s ease,
+          transform 0.15s ease,
+          box-shadow 0.3s ease;
+        box-shadow: 0 12px 30px -10px rgba(139, 124, 246, 0.6);
+      }
+      button.submit-btn:hover {
+        background-position: right center;
+        transform: translateY(-2px);
+      }
+      button.submit-btn:active {
+        transform: translateY(0);
+      }
+
+      /* result panel */
+      .result {
+        margin-top: 28px;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        background: linear-gradient(
+          120deg,
+          rgba(76, 224, 179, 0.08),
+          rgba(139, 124, 246, 0.08)
+        );
+        border: 1px solid rgba(76, 224, 179, 0.3);
+        border-radius: 20px;
+        padding: 26px 30px;
+        animation: reveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      @keyframes reveal {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .gauge-wrap {
+        position: relative;
+        width: 110px;
+        height: 110px;
+        flex-shrink: 0;
+      }
+      .gauge-wrap svg {
+        transform: rotate(-90deg);
+      }
+      .gauge-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.1);
+        stroke-width: 10;
+      }
+      .gauge-fill {
+        fill: none;
+        stroke: url(#gaugeGradient);
+        stroke-width: 10;
+        stroke-linecap: round;
+        stroke-dasharray: 301.6;
+        stroke-dashoffset: 301.6;
+        transition: stroke-dashoffset 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .gauge-number {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-light);
+      }
+
+      .result-copy .result-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--accent-mint);
+        margin-bottom: 6px;
+      }
+      .result-copy .result-headline {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      .result-copy .result-sub {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+      }
+
+      @media (max-width: 680px) {
+        form {
+          grid-template-columns: 1fr;
+        }
+        .panel {
+          padding: 24px;
+        }
+        .result {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .blob,
+        .eyebrow .dot,
+        button.submit-btn,
+        .result {
+          animation: none !important;
+        }
+        .progress-fill,
+        .gauge-fill {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+
+    <div class="wrap">
+      <div class="masthead">
+        <span class="eyebrow"
+          ><span class="dot"></span>Predictive Report Card</span
+        >
+        <h1 class="title">Student Exam Performance Indicator</h1>
+        <p class="subtitle">
+          Answer a few quick questions about the student and we'll estimate
+          their maths score.
+        </p>
+      </div>
+
+      <div class="panel">
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-label">
+          <span>Profile completeness</span
+          ><span><span id="progress-count">0</span>/7 answered</span>
+        </div>
+
+        <form
+          action="{{ url_for('predict_datapoint')}}"
+          method="post"
+          id="predict-form"
+        >
+          <div class="field">
+            <label class="form-label"
+              ><span class="icon">&#9737;</span>Gender</label
+            >
+            <select class="form-control" name="gender" required>
+              <option class="placeholder" selected disabled value="">
+                Select your gender
+              </option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="form-label"
+              ><span class="icon">&#9673;</span>Race or Ethnicity</label
+            >
+            <select class="form-control" name="ethnicity" required>
+              <option class="placeholder" selected disabled value="">
+                Select ethnicity
+              </option>
+              <option value="group A">Group A</option>
+              <option value="group B">Group B</option>
+              <option value="group C">Group C</option>
+              <option value="group D">Group D</option>
+              <option value="group E">Group E</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label class="form-label"
+              ><span class="icon">&#127891;</span>Parental Level of
+              Education</label
+            >
+            <select
+              class="form-control"
+              name="parental_level_of_education"
+              required
+            >
+              <option class="placeholder" selected disabled value="">
+                Select parent education
+              </option>
+              <option value="associate's degree">Associate's degree</option>
+              <option value="bachelor's degree">Bachelor's degree</option>
+              <option value="high school">High school</option>
+              <option value="master's degree">Master's degree</option>
+              <option value="some college">Some college</option>
+              <option value="some high school">Some high school</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="form-label"
+              ><span class="icon">&#127869;</span>Lunch Type</label
+            >
+            <select class="form-control" name="lunch" required>
+              <option class="placeholder" selected disabled value="">
+                Select lunch type
+              </option>
+              <option value="free/reduced">Free/reduced</option>
+              <option value="standard">Standard</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="form-label"
+              ><span class="icon">&#128221;</span>Test Preparation Course</label
+            >
+            <select
+              class="form-control"
+              name="test_preparation_course"
+              required
+            >
+              <option class="placeholder" selected disabled value="">
+                Select test course
+              </option>
+              <option value="none">None</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="form-label"
+              ><span class="icon">&#128214;</span>Writing Score out of
+              100</label
+            >
+            <input
+              class="form-control"
+              type="number"
+              name="reading_score"
+              placeholder="e.g. 78"
+              min="0"
+              max="100"
+            />
+          </div>
+
+          <div class="field">
+            <label class="form-label"
+              ><span class="icon">&#128221;</span>Reading Score out of
+              100</label
+            >
+            <input
+              class="form-control"
+              type="number"
+              name="writing_score"
+              placeholder="e.g. 82"
+              min="0"
+              max="100"
+            />
+          </div>
+
+          <div class="submit-row">
+            <button class="submit-btn" type="submit">
+              Predict Maths Score &rarr;
+            </button>
+          </div>
+        </form>
+
+        {% if results %}
+        <div class="result" id="result-panel" data-score="{{ results }}">
+          <div class="gauge-wrap">
+            <svg width="110" height="110" viewBox="0 0 110 110">
+              <defs>
+                <linearGradient
+                  id="gaugeGradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="0%"
+                >
+                  <stop offset="0%" stop-color="#FF8552" />
+                  <stop offset="50%" stop-color="#8B7CF6" />
+                  <stop offset="100%" stop-color="#4CE0B3" />
+                </linearGradient>
+              </defs>
+              <circle class="gauge-bg" cx="55" cy="55" r="48" />
+              <circle
+                class="gauge-fill"
+                id="gauge-fill"
+                cx="55"
+                cy="55"
+                r="48"
+              />
+            </svg>
+            <div class="gauge-number" id="gauge-number">0</div>
+          </div>
+          <div class="result-copy">
+            <p class="result-label">Predicted Result</p>
+            <h3 class="result-headline">Maths score: {{ results }}</h3>
+            <p class="result-sub">
+              Estimated from the profile submitted above.
+            </p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <script>
+      // Progress meter: track how many of the 7 fields are filled
+      (function () {
+        const form = document.getElementById("predict-form");
+        const fields = Array.from(form.querySelectorAll(".form-control"));
+        const fill = document.getElementById("progress-fill");
+        const count = document.getElementById("progress-count");
+
+        function update() {
+          let answered = 0;
+          fields.forEach((f) => {
+            const wrapper = f.closest(".field");
+            const has = f.value !== "" && f.value != null;
+            if (has) {
+              answered++;
+              wrapper.classList.add("filled");
+            } else {
+              wrapper.classList.remove("filled");
+            }
+          });
+          const pct = Math.round((answered / fields.length) * 100);
+          fill.style.width = pct + "%";
+          count.textContent = answered;
+        }
+
+        fields.forEach((f) => {
+          f.addEventListener("input", update);
+          f.addEventListener("change", update);
+        });
+        update();
+      })();
+
+      // Animate the score gauge if a result was rendered
+      (function () {
+        const panel = document.getElementById("result-panel");
+        if (!panel) return;
+        const raw = parseFloat(panel.getAttribute("data-score"));
+        const score = isNaN(raw) ? 0 : Math.max(0, Math.min(100, raw));
+        const circumference = 301.6;
+        const offset = circumference - (score / 100) * circumference;
+        const gaugeFill = document.getElementById("gauge-fill");
+        const gaugeNumber = document.getElementById("gauge-number");
+
+        requestAnimationFrame(() => {
+          gaugeFill.style.strokeDashoffset = offset;
+        });
+
+        let current = 0;
+        const duration = 1000;
+        const start = performance.now();
+        function step(ts) {
+          const progress = Math.min(1, (ts - start) / duration);
+          current = Math.round(progress * score);
+          gaugeNumber.textContent = current;
+          if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+
+        panel.scrollIntoView({ behavior: "smooth", block: "center" });
+      })();
+    </script>
+  </body>
+</html>
